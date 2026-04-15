@@ -1,3 +1,4 @@
+##CounterCV
 Desktop card counting assistant for virtual live-dealer blackjack. Built with Electron, React, and Typescript.
 
 Currently using the Zen Counting system as default and initial implementation due to high betting correlation.

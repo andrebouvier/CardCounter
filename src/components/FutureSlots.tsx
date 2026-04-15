@@ -18,14 +18,14 @@ export function VideoPreviewPlaceholder({
 
 export type BetSizingReadoutProps = {
   /** e.g. "2" or "—" when unknown */
-  unitsText?: string;
+  unitBet?: number;
 };
 
-export function BetSizingReadout({ unitsText = '—' }: BetSizingReadoutProps) {
+export function BetSizingReadout({ unitBet }: BetSizingReadoutProps) {
   return (
     <div className="future-stub" aria-hidden="true">
       <div className="future-stub__label">Bet sizing</div>
-      <div className="future-stub__value">Units: {unitsText}</div>
+      <div className="future-stub__value">Units: {unitBet}</div>
     </div>
   );
 }

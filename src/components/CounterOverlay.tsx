@@ -9,6 +9,7 @@ import { SettingsPanel } from './SettingsPanel';
 import { SessionControls } from './SessionControls';
 import { ZenCountButtonGrid } from './ZenCountButtonGrid';
 import type { UserSettings } from '../lib/config';
+import { calculateBetSpread } from '../lib/betspread';
 import type { ZenTag } from '../types/counter';
 
 export type CounterOverlayProps = {
@@ -40,6 +41,11 @@ export function CounterOverlay({
   settings,
   onSettingsChange,
 }: CounterOverlayProps) {
+  const unitBet =
+    typeof trueCount === 'number'
+      ? calculateBetSpread(trueCount, settings)
+      : settings.betSpread.minUnits;
+
   return (
     <div className="counter-overlay">
       <header className="overlay-header">
@@ -69,7 +75,7 @@ export function CounterOverlay({
 
       <section className="future-section" aria-label="Coming later">
         <VideoPreviewPlaceholder />
-        <BetSizingReadout />
+        <BetSizingReadout unitBet={unitBet} />
         <StrategyHintPanel />
       </section>
     </div>

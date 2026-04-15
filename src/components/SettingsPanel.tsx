@@ -1,4 +1,8 @@
-import { COUNT_SYSTEM_OPTIONS, type UserSettings } from '../lib/config';
+import {
+  COUNT_SYSTEM_OPTIONS,
+  USER_RISK_OPTIONS,
+  type UserSettings,
+} from '../lib/config';
 
 export type SettingsPanelProps = {
   value: UserSettings;
@@ -7,7 +11,25 @@ export type SettingsPanelProps = {
 
 type SettingsField =
   | {
+      id: 'bankrollSize';
+      label: string;
+      kind: 'number';
+      min: number;
+      max: number;
+      step: number;
+      helperText: string;
+    }
+  | {
       id: 'numberOfDecks';
+      label: string;
+      kind: 'number';
+      min: number;
+      max: number;
+      step: number;
+      helperText: string;
+    }
+  | {
+      id: 'variance';
       label: string;
       kind: 'number';
       min: number;
@@ -19,6 +41,14 @@ type SettingsField =
       id: 'countSystem';
       label: string;
       kind: 'select';
+      options: readonly { id: string; label: string }[];
+      helperText: string;
+    }
+  | {
+      id: 'userRisk';
+      label: string;
+      kind: 'select';
+      options: readonly { id: string; label: string }[];
       helperText: string;
     }
   | {
@@ -29,6 +59,15 @@ type SettingsField =
     };
 
 const SETTINGS_FIELDS: readonly SettingsField[] = [
+  {
+    id: 'bankrollSize',
+    label: 'Bankroll size',
+    kind: 'number',
+    min: 1,
+    max: 1000000,
+    step: 1,
+    helperText: 'Total bankroll used by Kelly bet sizing.',
+  },
   {
     id: 'numberOfDecks',
     label: 'Number of decks',
@@ -48,17 +87,46 @@ const SETTINGS_FIELDS: readonly SettingsField[] = [
     id: 'countSystem',
     label: 'Count system',
     kind: 'select',
+    options: COUNT_SYSTEM_OPTIONS,
     helperText: 'Select counting system.',
+  },
+  {
+    id: 'userRisk',
+    label: 'Risk',
+    kind: 'select',
+    options: USER_RISK_OPTIONS,
+    helperText: 'Adjusts Kelly fraction sizing (low, medium, high).',
+  },
+  {
+    id: 'variance',
+    label: 'Variance',
+    kind: 'number',
+    min: 0.0001,
+    max: 100,
+    step: 0.001,
+    helperText: 'Variance used in Kelly bet sizing calculations.',
   },
 ];
 
 export function SettingsPanel({ value, onChange }: SettingsPanelProps) {
+  const updateBankrollSize = (bankrollSize: number) => {
+    onChange({ ...value, bankrollSize });
+  };
+
   const updateDecks = (decks: number) => {
     onChange({ ...value, numberOfDecks: decks });
   };
 
+  const updateVariance = (variance: number) => {
+    onChange({ ...value, variance });
+  };
+
   const updateCountSystem = (countSystem: UserSettings['countSystem']) => {
     onChange({ ...value, countSystem });
+  };
+
+  const updateRisk = (userRisk: UserSettings['userRisk']) => {
+    onChange({ ...value, userRisk });
   };
 
   const updateSpread = (
@@ -85,9 +153,19 @@ export function SettingsPanel({ value, onChange }: SettingsPanelProps) {
                   min={field.min}
                   max={field.max}
                   step={field.step}
-                  value={value.numberOfDecks}
+                  value={
+                    field.id === 'bankrollSize'
+                      ? value.bankrollSize
+                      : field.id === 'numberOfDecks'
+                        ? value.numberOfDecks
+                        : value.variance
+                  }
                   onChange={(event) =>
-                    updateDecks(Number(event.target.value) || field.min)
+                    field.id === 'bankrollSize'
+                      ? updateBankrollSize(Number(event.target.value) || field.min)
+                      : field.id === 'numberOfDecks'
+                      ? updateDecks(Number(event.target.value) || field.min)
+                      : updateVariance(Number(event.target.value) || field.min)
                   }
                 />
                 <span className="settings-field__helper">{field.helperText}</span>
@@ -100,12 +178,14 @@ export function SettingsPanel({ value, onChange }: SettingsPanelProps) {
               <label className="settings-field" key={field.id}>
                 <span className="settings-field__label">{field.label}</span>
                 <select
-                  value={value.countSystem}
+                  value={field.id === 'countSystem' ? value.countSystem : value.userRisk}
                   onChange={(event) =>
-                    updateCountSystem(event.target.value as UserSettings['countSystem'])
+                    field.id === 'countSystem'
+                      ? updateCountSystem(event.target.value as UserSettings['countSystem'])
+                      : updateRisk(event.target.value as UserSettings['userRisk'])
                   }
                 >
-                  {COUNT_SYSTEM_OPTIONS.map((option) => (
+                  {field.options.map((option) => (
                     <option key={option.id} value={option.id}>
                       {option.label}
                     </option>

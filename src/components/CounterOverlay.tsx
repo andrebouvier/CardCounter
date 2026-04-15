@@ -57,7 +57,7 @@ export function CounterOverlay({
 
       <ZenCountButtonGrid onTag={onTag} disabled={disabled} />
 
-      {showRankReference && <RankReference />}
+      {/* {showRankReference && <RankReference />} */}
 
       <SessionControls
         onUndo={onUndo}

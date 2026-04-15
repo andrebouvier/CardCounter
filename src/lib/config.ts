@@ -1,5 +1,5 @@
 //user configurable settings (bet spread, number of decks, etc.)
-export type CountSystemId = 'zen' | 'hilo';
+export type CountSystemId = 'zen'; //| 'hilo';
 
 export type BetSpreadSettings = {
     minUnits: number;
@@ -19,7 +19,7 @@ export type CountSystemOption = {
 
 export const COUNT_SYSTEM_OPTIONS: readonly CountSystemOption[] = [
     { id: 'zen', label: 'Zen Count' },
-    { id: 'hilo', label: 'Hi-Lo' },
+    //{ id: 'hilo', label: 'Hi-Lo' },
 ];
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {

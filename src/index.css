@@ -48,7 +48,19 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.65rem 0.75rem;
+}
+
+.count-display__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.count-display__metric {
   text-align: center;
+  padding: 0.25rem 0.2rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-elevated) 65%, transparent);
 }
 
 .count-display__label {
@@ -60,20 +72,19 @@ body {
 }
 
 .count-display__value {
-  font-size: 2.35rem;
+  font-size: 2rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 
 .count-display__meta {
-  margin-top: 0.45rem;
+  margin-top: 0.5rem;
   font-size: 0.78rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  justify-content: center;
 }
 
 /* ZenCountButtonGrid — order: +2, +1, 0, -1, -2 (see ZEN_TAGS_DESC) */

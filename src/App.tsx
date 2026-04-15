@@ -1,6 +1,7 @@
 import { useCallback, useReducer, useState } from 'react';
 
 import { CounterOverlay } from './components/CounterOverlay';
+import { calculateDecksRemaining, calculateTrueCount } from './lib/counting';
 import { DEFAULT_USER_SETTINGS, type UserSettings } from './lib/config';
 import { zenRunningDelta, type ZenTag } from './types/counter';
 
@@ -47,6 +48,13 @@ const initialSession: SessionState = { runningCount: 0, history: [] };
 export function App() {
   const [session, dispatch] = useReducer(sessionReducer, initialSession);
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
+  const cardsSeen = session.history.length;
+  const decksRemainingRaw = calculateDecksRemaining(settings.numberOfDecks, cardsSeen);
+  const decksRemaining = decksRemainingRaw > 0 ? decksRemainingRaw : 0;
+  const trueCount =
+    decksRemaining > 0
+      ? calculateTrueCount(session.runningCount, decksRemaining)
+      : null;
 
   const onTag = useCallback((tag: ZenTag) => {
     dispatch({ type: 'tag', tag });
@@ -63,6 +71,8 @@ export function App() {
   return (
     <CounterOverlay
       runningCount={session.runningCount}
+      trueCount={trueCount}
+      decksRemaining={decksRemaining}
       onTag={onTag}
       onUndo={onUndo}
       onNewShoe={onNewShoe}

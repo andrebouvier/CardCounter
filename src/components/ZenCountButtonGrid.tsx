@@ -1,10 +1,10 @@
+import Card from '@heruka_urgyen/react-playing-cards/lib/TcN';
 import {
   formatZenTag,
   ZEN_TAG_RANK_SUBTITLE,
   ZEN_TAGS_DESC,
   type ZenTag,
 } from '../types/counter';
-import type { CSSProperties, FC } from 'react';
 
 export type ZenCountButtonGridProps = {
   onTag: (tag: ZenTag) => void;
@@ -28,17 +28,6 @@ const ZEN_TAG_DISPLAY_CARDS: Readonly<Record<ZenTag, readonly string[]>> = {
   [-1]: ['As'],
   [-2]: ['Ts', 'Jh', 'Qd', 'Kc'],
 };
-
-type PlayingCardProps = {
-  card: string;
-  height?: string;
-  back?: boolean;
-  front?: boolean;
-  className?: string;
-  style?: CSSProperties;
-};
-
-const Card = require('@heruka_urgyen/react-playing-cards/lib/TcN').default as FC<PlayingCardProps>;
 
 export function ZenCountButtonGrid({ onTag, disabled }: ZenCountButtonGridProps) {
   return (

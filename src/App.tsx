@@ -1,6 +1,7 @@
-import { useCallback, useReducer } from 'react';
+import { useCallback, useReducer, useState } from 'react';
 
 import { CounterOverlay } from './components/CounterOverlay';
+import { DEFAULT_USER_SETTINGS, type UserSettings } from './lib/config';
 import { zenRunningDelta, type ZenTag } from './types/counter';
 
 type SessionState = {
@@ -45,6 +46,7 @@ const initialSession: SessionState = { runningCount: 0, history: [] };
 
 export function App() {
   const [session, dispatch] = useReducer(sessionReducer, initialSession);
+  const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
 
   const onTag = useCallback((tag: ZenTag) => {
     dispatch({ type: 'tag', tag });
@@ -65,6 +67,8 @@ export function App() {
       onUndo={onUndo}
       onNewShoe={onNewShoe}
       canUndo={session.history.length > 0}
+      settings={settings}
+      onSettingsChange={setSettings}
     />
   );
 }

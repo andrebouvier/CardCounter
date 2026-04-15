@@ -102,6 +102,9 @@ body {
   transition:
     background 0.12s ease,
     border-color 0.12s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .zen-tag-btn:hover:not(:disabled) {
@@ -119,17 +122,25 @@ body {
 }
 
 .zen-tag-btn__value {
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
+  margin-top: 0.2rem;
 }
 
-.zen-tag-btn__ranks {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 0.15rem;
-  line-height: 1.25;
+.zen-tag-btn__cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  flex-wrap: wrap;
+  min-height: 34px;
+}
+
+.zen-tag-btn__card {
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
 }
 
 .zen-tag-btn--pos {
@@ -259,6 +270,107 @@ body {
   font-size: 0.72rem;
   color: var(--text-muted);
   margin: 0.15rem 0 0;
+}
+
+/* SettingsPanel */
+.settings-panel {
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.settings-panel__summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.settings-panel__summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-panel__summary::after {
+  content: 'Show';
+  float: right;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.7rem;
+}
+
+.settings-panel[open] .settings-panel__summary::after {
+  content: 'Hide';
+}
+
+.settings-panel__body {
+  border-top: 1px solid var(--border);
+  padding: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.24rem;
+}
+
+.settings-field__label {
+  font-size: 0.74rem;
+  color: var(--text);
+}
+
+.settings-field__helper {
+  font-size: 0.67rem;
+  color: var(--text-muted);
+}
+
+.settings-field input,
+.settings-field select {
+  min-height: 34px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.45rem;
+  font: inherit;
+}
+
+/* Hide spinner arrows on number inputs */
+.settings-field input[type='number']::-webkit-outer-spin-button,
+.settings-field input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.settings-field input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.settings-field input:focus-visible,
+.settings-field select:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.settings-field__spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.settings-field__spread label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
 }
 
 /* Future stubs */

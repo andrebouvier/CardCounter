@@ -5,8 +5,10 @@ import {
   StrategyHintPanel,
   VideoPreviewPlaceholder,
 } from './FutureSlots';
+import { SettingsPanel } from './SettingsPanel';
 import { SessionControls } from './SessionControls';
 import { ZenCountButtonGrid } from './ZenCountButtonGrid';
+import type { UserSettings } from '../lib/config';
 import type { ZenTag } from '../types/counter';
 
 export type CounterOverlayProps = {
@@ -20,6 +22,8 @@ export type CounterOverlayProps = {
   canUndo?: boolean;
   disabled?: boolean;
   showRankReference?: boolean;
+  settings: UserSettings;
+  onSettingsChange: (next: UserSettings) => void;
 };
 
 export function CounterOverlay({
@@ -33,6 +37,8 @@ export function CounterOverlay({
   canUndo,
   disabled,
   showRankReference = true,
+  settings,
+  onSettingsChange,
 }: CounterOverlayProps) {
   return (
     <div className="counter-overlay">
@@ -40,6 +46,8 @@ export function CounterOverlay({
         <h1 className="overlay-header__title">Zen count</h1>
         <p className="overlay-header__subtitle">Manual tags · overlay</p>
       </header>
+
+      <SettingsPanel value={settings} onChange={onSettingsChange} />
 
       <CountDisplay
         runningCount={runningCount}

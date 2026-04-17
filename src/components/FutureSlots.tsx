@@ -1,18 +1,22 @@
 export type VideoPreviewPlaceholderProps = {
   label?: string;
+  onVideoPreviewPlaceholderClick?: () => void;
 };
 
 export function VideoPreviewPlaceholder({
-  label = 'Camera / OpenCV',
+  label = 'Screen Detect',
+  onVideoPreviewPlaceholderClick,
 }: VideoPreviewPlaceholderProps) {
   return (
-    <div
+    <button
       className="future-stub video-preview-placeholder"
-      aria-hidden="true"
+      type="button"
+      onClick={() => onVideoPreviewPlaceholderClick?.()}
+      aria-label={label}
     >
       <div className="future-stub__label">{label}</div>
       <div className="future-stub__value">Video feed placeholder</div>
-    </div>
+    </button>
   );
 }
 

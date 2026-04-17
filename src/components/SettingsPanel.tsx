@@ -95,7 +95,7 @@ const SETTINGS_FIELDS: readonly SettingsField[] = [
     label: 'Risk',
     kind: 'select',
     options: USER_RISK_OPTIONS,
-    helperText: 'Adjusts Kelly fraction sizing (low, medium, high).',
+    helperText: 'Adjusts Kelly fraction sizing (quarter, half, full).',
   },
   {
     id: 'variance',
@@ -104,7 +104,7 @@ const SETTINGS_FIELDS: readonly SettingsField[] = [
     min: 0.0001,
     max: 100,
     step: 0.001,
-    helperText: 'Variance used in Kelly bet sizing calculations.',
+    helperText: '(Advanced) Variance used in Kelly bet sizing calculations.',
   },
 ];
 

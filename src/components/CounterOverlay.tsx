@@ -9,7 +9,7 @@ import { SettingsPanel } from './SettingsPanel';
 import { SessionControls } from './SessionControls';
 import { ZenCountButtonGrid } from './ZenCountButtonGrid';
 import type { UserSettings } from '../lib/config';
-import { calculateBetSpread } from '../lib/betspread';
+import { calculateZenBetSpread } from '../lib/betspread';
 import type { ZenTag } from '../types/counter';
 
 export type CounterOverlayProps = {
@@ -23,6 +23,8 @@ export type CounterOverlayProps = {
   canUndo?: boolean;
   disabled?: boolean;
   showRankReference?: boolean;
+  /** Fires when the full “Screen detect” placeholder is pressed (e.g. start capture). */
+  onScreenDetect?: () => void;
   settings: UserSettings;
   onSettingsChange: (next: UserSettings) => void;
 };
@@ -38,12 +40,13 @@ export function CounterOverlay({
   canUndo,
   disabled,
   showRankReference = true,
+  onScreenDetect,
   settings,
   onSettingsChange,
 }: CounterOverlayProps) {
   const unitBet =
-    typeof trueCount === 'number'
-      ? calculateBetSpread(trueCount, settings)
+    typeof decksRemaining === 'number' && decksRemaining > 0
+      ? calculateZenBetSpread(runningCount, decksRemaining, settings)
       : settings.betSpread.minUnits;
 
   return (
@@ -74,7 +77,9 @@ export function CounterOverlay({
       />
 
       <section className="future-section" aria-label="Coming later">
-        <VideoPreviewPlaceholder />
+        <VideoPreviewPlaceholder
+          onVideoPreviewPlaceholderClick={onScreenDetect}
+        />
         <BetSizingReadout unitBet={unitBet} />
         <StrategyHintPanel />
       </section>

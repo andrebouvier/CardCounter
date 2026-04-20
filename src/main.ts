@@ -74,3 +74,90 @@ ipcMain.handle('electronMain:getScreenSources', () => {
     })
   });
 });
+
+//Testing WebSocket connection
+function testWebSocket(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket('ws://127.0.0.1:8000')
+
+    ws.onopen = () => {
+      ws.send('Hello from preload.ts')
+    };
+
+    ws.onmessage = (event) => {
+      resolve(String(event.data))
+      ws.close();
+    }
+
+    ws.onerror = () => reject(new Error('WebSocket error'))
+  });
+}
+
+async function testWebSocketRetry(maxRetries = 20, delayMs = 250): Promise<WebSocket> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const socket = await new Promise<WebSocket>((resolve, reject) => {
+        const s = new WebSocket('ws://127.0.0.1:8000')
+        s.onopen = () => resolve(s)
+        s.onerror = () => reject(new Error('connection error'));
+      });
+      console.log('Electron connect to websocket');
+      return socket;
+    } catch {
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw new Error('WebSocket connection failed');
+}
+
+
+
+// const reply = testWebSocket()
+// console.log(reply);
+
+let pyProc = null;
+let pyPort = null;
+
+const createPyProc = () => {
+  const port = 8000
+
+  pyProc = null;
+  try {
+    var spawn = require('child_process').spawn;
+    //pyProc = spawn('python', ['server.py', port]);
+
+    const pyScript = path.join(app.getAppPath(), 'src', 'server.py');
+    const pyCwd = path.dirname(pyScript);
+
+    pyProc = spawn('py', [pyScript], {cwd: pyCwd})
+
+
+    pyProc.on('error', (error) => {
+      console.log(error);
+    });
+    pyProc.on('close', (code) => {
+      console.log(`Python process exited with code ` + code);
+    });
+
+    if (pyProc != null) {
+      console.log('child process success on port ' + port)
+    }
+  }
+  catch (error) {
+    console.log(error);
+  }
+  testWebSocketRetry().then(socket => {
+    console.log('Electron connected to websocket');
+  }).catch(error => {
+    console.log('Electron failed to connect to websocket', error);
+  });
+}
+
+const exitPyProc = () => {
+  pyProc.kill()
+  pyProc = null
+  pyPort = null
+}
+
+app.on('ready', createPyProc)
+app.on('will-quit', exitPyProc)

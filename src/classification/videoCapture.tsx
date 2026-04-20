@@ -19,6 +19,7 @@ declare global {
 }
 
 export async function getVideoSources(pickSource: PickerFn): Promise<MediaStream> {
+  
   const hasAccess = await window.electronApi.main.getScreenAccess();
   if (!hasAccess) {
     throw new Error('Screen capture permission is not granted.');
@@ -50,4 +51,8 @@ export async function getVideoSources(pickSource: PickerFn): Promise<MediaStream
   } as MediaStreamConstraints;
 
   return window.navigator.mediaDevices.getUserMedia(constraints);
+}
+
+export async function sendFrame(stream: MediaStream, frame: Uint8Array): Promise<void> {
+  
 }

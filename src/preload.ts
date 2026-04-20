@@ -11,5 +11,4 @@ contextBridge.exposeInMainWorld('electronApi', {
     getScreenAccess: () => ipcRenderer.invoke('electronMain:getScreenAccess'),
     getScreenSources: () => ipcRenderer.invoke('electronMain:getScreenSources'),
   }
-
 });

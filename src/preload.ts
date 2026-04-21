@@ -10,5 +10,7 @@ contextBridge.exposeInMainWorld('electronApi', {
     openScreenSecurity: () => ipcRenderer.invoke('electronMain:openScreenSecurity'),
     getScreenAccess: () => ipcRenderer.invoke('electronMain:getScreenAccess'),
     getScreenSources: () => ipcRenderer.invoke('electronMain:getScreenSources'),
+    captureStart: () => ipcRenderer.invoke('capture:start'),
+    captureStop: () => ipcRenderer.invoke('capture:stop'),
   }
 });

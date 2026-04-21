@@ -13,6 +13,8 @@ declare global {
       main: {
         getScreenAccess: () => Promise<boolean>;
         getScreenSources: () => Promise<ScreenSource[]>;
+        captureStart: () => Promise<void>;
+        captureStop: () => Promise<void>;
       };
     };
   }
@@ -49,7 +51,8 @@ export async function getVideoSources(pickSource: PickerFn): Promise<MediaStream
       },
     },
   } as MediaStreamConstraints;
-
+  //connect to websocket
+  await window.electronApi.main.captureStart();
   return window.navigator.mediaDevices.getUserMedia(constraints);
 }
 

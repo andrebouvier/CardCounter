@@ -67,6 +67,7 @@ export function App() {
     return () => {
       previewStreamRef.current?.getTracks().forEach((track) => track.stop());
       previewStreamRef.current = null;
+      void window.electronApi.main.captureStop();
       previewWindowRef.current?.close();
       previewWindowRef.current = null;
     };
@@ -86,6 +87,12 @@ export function App() {
     }
 
     previewWindowRef.current = previewWindow;
+    previewWindow.onbeforeunload = () => {
+      previewStreamRef.current?.getTracks().forEach((track) => track.stop());
+      previewStreamRef.current = null;
+      void window.electronApi.main.captureStop();
+      previewWindowRef.current = null;
+    };
     previewWindow.document.title = 'Capture Preview';
     previewWindow.document.body.style.margin = '0';
     previewWindow.document.body.style.background = '#000';
@@ -136,6 +143,14 @@ export function App() {
         });
       });
       openPreviewWindow(stream);
+      //disconnect from websocket
+      const capture = stream.getVideoTracks()[0];
+      if (capture) {
+        capture.addEventListener('ended', () => {
+          void window.electronApi.main.captureStop();
+        });
+      }
+
       console.log('Screen capture started', stream);
     } catch (error) {
       if (

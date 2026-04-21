@@ -93,7 +93,7 @@ function testWebSocket(): Promise<string> {
   });
 }
 
-async function testWebSocketRetry(maxRetries = 20, delayMs = 250): Promise<WebSocket> {
+async function testWebSocketRetry(maxRetries = 20, delayMs = 250, disconnectOnConnect = true): Promise<WebSocket> {
   for (let i = 0; i < maxRetries; i++) {
     try {
       const socket = await new Promise<WebSocket>((resolve, reject) => {
@@ -102,6 +102,16 @@ async function testWebSocketRetry(maxRetries = 20, delayMs = 250): Promise<WebSo
         s.onerror = () => reject(new Error('connection error'));
       });
       console.log('Electron connect to websocket');
+      socket.onclose = () => {
+        console.log('WebSocket closed');
+      };
+      socket.onerror = () => {
+        console.log('WebSocket error');
+      };
+      if (disconnectOnConnect) {
+        console.log('Disconnecting from websocket');
+        socket.close();
+      }
       return socket;
     } catch {
       await new Promise((r) => setTimeout(r, delayMs));
@@ -146,8 +156,8 @@ const createPyProc = () => {
   catch (error) {
     console.log(error);
   }
-  testWebSocketRetry().then(socket => {
-    console.log('Electron connected to websocket');
+  testWebSocketRetry(20, 250, true).then(socket => {
+    console.log('PyProcess was successfully started');
   }).catch(error => {
     console.log('Electron failed to connect to websocket', error);
   });
@@ -161,3 +171,23 @@ const exitPyProc = () => {
 
 app.on('ready', createPyProc)
 app.on('will-quit', exitPyProc)
+
+// IPC handler to only connect when window capture is on
+let ws: WebSocket | null = null;
+
+ipcMain.handle('capture:start', async () => {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    ws = await testWebSocketRetry(20, 250, false);
+    ws.send('handshake');
+  }
+  return { ok: true };
+});
+
+ipcMain.handle('capture:stop', async () => {
+  if (ws) {
+    console.log('Disconnecting from websocket');
+    ws.close();
+    ws = null;
+  }
+  return { ok: true };
+});

@@ -129,6 +129,14 @@ function openProcessWindow() {
       height: 720,
       webPreferences: {preload: path.join(__dirname, 'preload.js')},
     });
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+      processedWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?processed=1`);
+    } else {
+      processedWindow.loadFile(
+        path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+        { search: '?processed=1' }
+      );
+    }
     processedWindow.on('closed', () => {
       processedWindow = null;
     });
@@ -185,13 +193,30 @@ const exitPyProc = () => {
 app.on('ready', createPyProc)
 app.on('will-quit', exitPyProc)
 
-// IPC handler to only connect when window capture is on
+// IPC handler to only connect when window capture is on send's frames to the main window and processed window
 let ws: WebSocket | null = null;
 
 ipcMain.handle('capture:start', async () => {
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     ws = await testWebSocketRetry(20, 250, false);
     ws.send('handshake');
+
+    ws.onmessage = async (event) => {
+      let bytes: Uint8Array | null = null;
+
+      if (event.data instanceof ArrayBuffer) {
+        bytes = new Uint8Array(event.data);
+      } else if (event.data instanceof Blob) {
+        const arrayBuffer = await event.data.arrayBuffer();
+        bytes = new Uint8Array(arrayBuffer);
+      }
+      
+      if (!bytes) return;
+
+      // const mainWindow = BrowserWindow.getAllWindows()[0];
+      // mainWindow?.webContents.send('capture:processedFrame', bytes);
+      processedWindow?.webContents.send('capture:processedFrame', bytes);
+    };
   }
   return { ok: true };
 });
@@ -205,8 +230,6 @@ ipcMain.handle('capture:stop', async () => {
   return { ok: true };
 });
 
-//ipcMain.handle('capture:sendFrame', async (event, frame: Uint8Array) => {}
-
 ipcMain.handle('capture:openProcessWindow', () => { 
   openProcessWindow();
   return { ok: true };
@@ -216,4 +239,19 @@ ipcMain.handle('capture:closeProcessWindow', () => {
   processedWindow?.close();
   processedWindow = null;
   return { ok: true };
+});
+
+//send frame to websocket
+ipcMain.handle('capture:sendFrame', async (_event, frame: Uint8Array) => {
+  if (!ws) {
+    return { ok:false, error: 'WebSocket is not connected'};
+  }
+
+  try {
+    ws.send(frame);
+    return { ok: true };
+  } catch (error) {
+    console.error('Error sending frame to websocket', error);
+    return { ok: false, error: 'Failed to send frame'};
+  }
 });

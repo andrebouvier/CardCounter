@@ -6,17 +6,20 @@ export interface ScreenSource {
 }
 
 type PickerFn = (sources: ScreenSource[]) => Promise<string | null>;
+type ScreenAccessStatus = 'granted' | 'denied' | 'restricted' | 'not-determined' | 'unknown';
 
 declare global {
   interface Window {
     electronApi: {
       main: {
-        getScreenAccess: () => Promise<boolean>;
+        getScreenAccess: () => Promise<ScreenAccessStatus>;
         getScreenSources: () => Promise<ScreenSource[]>;
         captureStart: () => Promise<void>;
         captureStop: () => Promise<void>;
         closeProcessWindow: () => Promise<void>;
         openProcessWindow: () => Promise<void>;
+        sendFrame: (frame: Uint8Array) => Promise<void>;
+        onProcessedFrame: (cb: (frame: Uint8Array) => void) => () => void;
       };
     };
   }
@@ -24,9 +27,12 @@ declare global {
 
 export async function getVideoSources(pickSource: PickerFn): Promise<MediaStream> {
   
-  const hasAccess = await window.electronApi.main.getScreenAccess();
-  if (!hasAccess) {
-    throw new Error('Screen capture permission is not granted.');
+  const accessStatus = await window.electronApi.main.getScreenAccess();
+  if (accessStatus !== 'granted') {
+    if (accessStatus === 'denied' || accessStatus === 'restricted') {
+      throw new Error('Screen capture permission is denied. Enable it in system settings.');
+    }
+    throw new Error(`Screen capture permission is not granted (status: ${accessStatus}).`);
   }
 
   const sources = await window.electronApi.main.getScreenSources();
@@ -58,6 +64,7 @@ export async function getVideoSources(pickSource: PickerFn): Promise<MediaStream
   return window.navigator.mediaDevices.getUserMedia(constraints);
 }
 
-export async function sendFrame(stream: MediaStream, frame: Uint8Array): Promise<void> {
-  
+//send frame to websocket
+export async function sendFrame(frame: Uint8Array): Promise<void> {
+  await window.electronApi.main.sendFrame(frame);
 }

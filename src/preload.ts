@@ -21,5 +21,12 @@ contextBridge.exposeInMainWorld('electronApi', {
     //open and close window for processed frames
     openProcessWindow: () => ipcRenderer.invoke('capture:openProcessWindow'),
     closeProcessWindow: () => ipcRenderer.invoke('capture:closeProcessWindow'),
+
+    //receive processed frames
+    onProcessedFrame: (cb: (frame: Uint8Array) => void) => {
+      const listener = (_event: unknown, frame: Uint8Array) => cb(frame);
+      ipcRenderer.on('capture:processedFrame', listener);
+      return () => ipcRenderer.removeListener('capture:processedFrame', listener);
+    }
   }
 });

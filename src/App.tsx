@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useReducer, useState } from 'react';
 
 import { CounterOverlay } from './components/CounterOverlay';
-import { getVideoSources, type ScreenSource } from './classification/videoCapture';
+import { getVideoSources, sendFrame, type ScreenSource } from './classification/videoCapture';
 import { calculateDecksRemaining, calculateTrueCount } from './lib/counting';
 import { DEFAULT_USER_SETTINGS, type UserSettings } from './lib/config';
 import { zenRunningDelta, type ZenTag } from './types/counter';
@@ -58,6 +58,7 @@ export function App() {
   const cardsSeen = session.history.length;
   const decksRemainingRaw = calculateDecksRemaining(settings.numberOfDecks, cardsSeen);
   const decksRemaining = decksRemainingRaw > 0 ? decksRemainingRaw : 0;
+  const isProcessedWindow = new URLSearchParams(window.location.search).get('processed') === '1';
   const trueCount =
     decksRemaining > 0
       ? calculateTrueCount(session.runningCount, decksRemaining)
@@ -136,6 +137,97 @@ export function App() {
     dispatch({ type: 'newShoe' });
   }, []);
 
+  const frameLoopStopRef = useRef<(() => void) | null>(null);
+
+  const startFrameLoop = useCallback((stream: MediaStream) => {
+    const track = stream.getVideoTracks()[0];
+    if (!track) return;
+
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.muted = true;
+    video.playsInline = true;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let stopped = false;
+    let sending = false;
+    const intervals = 100; //10 FPS
+    let lastSent = 0;
+    let rafId = 0;
+
+    const stop = () => {
+      stopped = true;
+      if (rafId) cancelAnimationFrame(rafId);
+    }; 
+
+    frameLoopStopRef.current?.();
+    frameLoopStopRef.current = stop;
+    track.addEventListener('ended', stop);
+
+    void video.play().then(() => {
+      const tick = () => {
+        if (stopped) return;
+
+        rafId = requestAnimationFrame(tick);
+        if (video.videoWidth === 0 || video.videoHeight === 0) return;
+        const now = performance.now();
+        if (now - lastSent < intervals || sending) return;
+        lastSent = now;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        sending = true;
+        canvas.toBlob(async (blob) => {
+          try {
+            if (!blob || stopped) return;
+            const buffer = await blob.arrayBuffer();
+            const frame = new Uint8Array(buffer);
+            // either call your helper:
+            // await sendFrame(stream, frame);
+            // or call preload directly:
+            await sendFrame(frame);
+          } catch (err) {
+            console.error('Frame send failed', err);
+          } finally {
+            sending = false;
+          }
+        }, 'image/jpeg', 0.7);
+      };
+      tick();
+    }).catch((err) => {
+      console.error('Video play failed for frame loop', err);
+    });
+  }, []);
+
+  //render the processed frames
+  const lastUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isProcessedWindow) return;
+
+    const unsubscribe = window.electronApi.main.onProcessedFrame((frame: Uint8Array) => {
+      const safeBytes = frame.slice();
+      const blob = new Blob([safeBytes], { type: 'image/jpeg' });
+      const url = URL.createObjectURL(blob);
+
+      const processedImage = document.getElementById('processed-image') as HTMLImageElement | null;
+      if (processedImage) {
+        processedImage.src = url;
+      }
+
+      if (lastUrlRef.current) URL.revokeObjectURL(lastUrlRef.current);
+      lastUrlRef.current = url;
+    });
+
+    return () => {
+      unsubscribe?.();
+      if (lastUrlRef.current) URL.revokeObjectURL(lastUrlRef.current);
+    };  
+  }, [isProcessedWindow]);
+
   const onScreenDetect = useCallback(async () => {
     try {
       const stream = await getVideoSources(async (sources: ScreenSource[]) => {
@@ -145,8 +237,13 @@ export function App() {
         });
       });
       openPreviewWindow(stream);
+
       //open window for processed frames
       void window.electronApi.main.openProcessWindow();
+
+      //send frame to websocket
+      startFrameLoop(stream);
+      
       //disconnect from websocket
       const capture = stream.getVideoTracks()[0];
       if (capture) {
@@ -175,6 +272,18 @@ export function App() {
     pickerResolveRef.current = null;
     setSourcePickerOptions(null);
   }, []);
+
+  if (isProcessedWindow) {
+    return (
+      <div style={{ margin: 0, background: '#000', width: '100vw', height: '100vh' }}>
+        <img
+          id="processed-image"
+          alt="Processed stream"
+          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -225,6 +334,8 @@ export function App() {
           </div>
         </div>
       ) : null}
+
+
     </>
   );
 }

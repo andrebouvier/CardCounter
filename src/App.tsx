@@ -91,6 +91,8 @@ export function App() {
       previewStreamRef.current?.getTracks().forEach((track) => track.stop());
       previewStreamRef.current = null;
       void window.electronApi.main.captureStop();
+      //close window for processed frames
+      void window.electronApi.main.closeProcessWindow();
       previewWindowRef.current = null;
     };
     previewWindow.document.title = 'Capture Preview';
@@ -143,6 +145,8 @@ export function App() {
         });
       });
       openPreviewWindow(stream);
+      //open window for processed frames
+      void window.electronApi.main.openProcessWindow();
       //disconnect from websocket
       const capture = stream.getVideoTracks()[0];
       if (capture) {

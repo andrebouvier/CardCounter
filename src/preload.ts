@@ -10,7 +10,16 @@ contextBridge.exposeInMainWorld('electronApi', {
     openScreenSecurity: () => ipcRenderer.invoke('electronMain:openScreenSecurity'),
     getScreenAccess: () => ipcRenderer.invoke('electronMain:getScreenAccess'),
     getScreenSources: () => ipcRenderer.invoke('electronMain:getScreenSources'),
+
+    //start connection to websocket when window capture is started
     captureStart: () => ipcRenderer.invoke('capture:start'),
     captureStop: () => ipcRenderer.invoke('capture:stop'),
+
+    //send frames to websocket for processing
+    sendFrame: (frame: Uint8Array) => ipcRenderer.invoke('capture:sendFrame', frame),
+
+    //open and close window for processed frames
+    openProcessWindow: () => ipcRenderer.invoke('capture:openProcessWindow'),
+    closeProcessWindow: () => ipcRenderer.invoke('capture:closeProcessWindow'),
   }
 });

@@ -120,7 +120,20 @@ async function testWebSocketRetry(maxRetries = 20, delayMs = 250, disconnectOnCo
   throw new Error('WebSocket connection failed');
 }
 
+let processedWindow: BrowserWindow | null = null;
 
+function openProcessWindow() {
+  if (!processedWindow) {
+    processedWindow = new BrowserWindow({
+      width: 1200,
+      height: 720,
+      webPreferences: {preload: path.join(__dirname, 'preload.js')},
+    });
+    processedWindow.on('closed', () => {
+      processedWindow = null;
+    });
+  }
+}
 
 // const reply = testWebSocket()
 // console.log(reply);
@@ -189,5 +202,18 @@ ipcMain.handle('capture:stop', async () => {
     ws.close();
     ws = null;
   }
+  return { ok: true };
+});
+
+//ipcMain.handle('capture:sendFrame', async (event, frame: Uint8Array) => {}
+
+ipcMain.handle('capture:openProcessWindow', () => { 
+  openProcessWindow();
+  return { ok: true };
+});
+
+ipcMain.handle('capture:closeProcessWindow', () => {
+  processedWindow?.close();
+  processedWindow = null;
   return { ok: true };
 });

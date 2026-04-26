@@ -15,6 +15,8 @@ declare global {
         getScreenSources: () => Promise<ScreenSource[]>;
         captureStart: () => Promise<void>;
         captureStop: () => Promise<void>;
+        closeProcessWindow: () => Promise<void>;
+        openProcessWindow: () => Promise<void>;
       };
     };
   }
